@@ -36,10 +36,41 @@ pipeline {
                 echo 'Pre prod'
             }
         }
+        stage('Prod approval') {
+            steps {
+                script{
+                    if (env.BRANCH_NAME == "master"){
+                        input("Proceed for Prod deployment ?")
+                    }
+                    
+                }
+            }
+        }
         stage('Deploy to prod') {
             steps {
                 echo 'prod'
             }
         }
     }
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            deleteDir() /* clean up our workspace */
+        }
+        success {
+            echo 'I succeeded!'
+        }
+        unstable {
+            echo 'I am unstable :/'
+        }
+        failure {
+            mail to: 'team@example.com',
+             subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+             body: "Something is wrong with ${env.BUILD_URL}"
+        }
+        changed {
+            echo 'Things were different before...'
+        }
+    }
+       
 }
